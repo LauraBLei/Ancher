@@ -1,4 +1,3 @@
-// Export Supabase client and utilities
-export * from "./client";
-export * from "./auth";
-export * from "./types";
+// Export the Supabase client
+export { supabase } from "./client";
+export { useAuthStore } from "./authStore";

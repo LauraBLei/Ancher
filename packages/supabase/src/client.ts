@@ -1,28 +1,31 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "./types";
+import { createClient } from "@supabase/supabase-js";
 
-let supabaseInstance: SupabaseClient<Database> | null = null;
-
-export const getSupabaseClient = (
-  supabaseUrl: string,
-  supabaseAnonKey: string
-): SupabaseClient<Database> => {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey);
+/**
+ * Gets environment variables based on the platform
+ * Next.js uses NEXT_PUBLIC_ prefix
+ * Expo uses EXPO_PUBLIC_ prefix
+ */
+const getEnvVars = () => {
+  // Try Next.js env vars first
+  if (typeof process !== "undefined" && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    };
   }
-  return supabaseInstance;
+
+  // Try Expo env vars
+  if (typeof process !== "undefined" && process.env.EXPO_PUBLIC_SUPABASE_URL) {
+    return {
+      url: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    };
+  }
+
+  return { url: "", anonKey: "" };
 };
 
-// For web (Next.js)
-export const createWebClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return getSupabaseClient(supabaseUrl, supabaseAnonKey);
-};
+const { url, anonKey } = getEnvVars();
 
-// For mobile (Expo)
-export const createMobileClient = () => {
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
-  return getSupabaseClient(supabaseUrl, supabaseAnonKey);
-};
+// Create a single supabase client for interacting with your database
+export const supabase = createClient(url || "", anonKey || "");
