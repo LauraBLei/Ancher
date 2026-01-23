@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAuthStore } from "@repo/supabase";
 
-const LoginPage = () => {
+const SignUpPage = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const signIn = useAuthStore((state) => state.signIn);
+  const signUp = useAuthStore((state) => state.signUp);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,10 +19,10 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      await signUp(email, password, name);
       window.location.href = "/";
     } catch (err: any) {
-      setError(err.message || "Failed to sign in");
+      setError(err.message || "Failed to sign up");
     } finally {
       setLoading(false);
     }
@@ -30,9 +31,23 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-center">Login</h1>
+        <h1 className="text-2xl font-bold text-center">Sign Up</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               Email
@@ -71,14 +86,14 @@ const LoginPage = () => {
             disabled={loading}
             className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
         <p className="text-center text-sm">
-          Don't have an account?{" "}
-          <Link href="/signup" className="text-blue-600 hover:underline">
-            Sign up
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Log in
           </Link>
         </p>
       </div>
@@ -86,4 +101,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SignUpPage;

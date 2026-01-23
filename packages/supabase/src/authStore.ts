@@ -5,7 +5,7 @@ import { supabase } from "./client";
 interface AuthState {
   user: any | null;
   isAuthenticated: boolean;
-  signUp: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, name: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   initAuth: () => Promise<void>;
@@ -17,12 +17,32 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
 
-      signUp: async (email, password) => {
+      signUp: async (email, password, name) => {
+        // 1. Create auth user
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
         if (error) throw error;
+
+        // 2. Create user record in your users table
+        if (data.user) {
+          console.log(data);
+          const { error: insertError } = await supabase.from("users").insert({
+            id: data.user.id,
+            name: name,
+            avatar:
+              "https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-female-icon.png",
+            banner:
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVsy3iSZMaTCq7FiUnSOZKu5N_dgyZdunKSQ&s",
+          });
+
+          if (insertError) {
+            console.error("Failed to create user record:", insertError);
+            throw insertError;
+          }
+        }
+
         set({ user: data.user, isAuthenticated: !!data.user });
         return data.user;
       },
